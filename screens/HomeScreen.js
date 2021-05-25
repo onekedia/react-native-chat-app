@@ -1,4 +1,4 @@
-import React,{useState, useLayoutEffect} from 'react';
+import React,{useState, useLayoutEffect, useEffect} from 'react';
 import {StyleSheet,ScrollView,View,TouchableOpacity, SafeAreaView,KeyboardAvoidingView} from 'react-native';
 import {Button, Input,Image,Avatar} from 'react-native-elements';
 import {StatusBar} from 'expo-status-bar';
@@ -7,9 +7,29 @@ import {auth,db} from '../firebase';
 import {AntDesign,SimpleLineIcons} from '@expo/vector-icons';
 
 const HomeScreen=({navigation})=>{
+	const [chats, setChats] = useState([])
+
+	useEffect(() =>{
+		const unsubscribe = db.collection('chats').onSnapshot((snapShot)=>
+			setChats(
+				snapShot.docs.map((doc)=>({
+					id: doc.id,
+					data: doc.data()
+				}))
+			)
+		)
+		return unsubscribe
+	}, [])
+
 	const signOutUser = () =>{
 		auth.signOut().then(()=>{
 			navigation.replace("Login");
+		})
+	};
+
+	const enterChat = (id,chatName) =>{
+		navigation.navigate('Chat', {
+			id, chatName
 		})
 	}
 
@@ -29,22 +49,33 @@ const HomeScreen=({navigation})=>{
 				</View>
 			),
 			headerRight: ()=>(
-				<View style={{}}>
+				<View style={{
+					flexDirection: 'row',
+					justifyContent: 'space-between',
+					width: 80,
+					marginRight: 20
+				}}>
 					<TouchableOpacity activeOpacity={0.5}>
 						<AntDesign name='camerao' size={24} color='black' />
 					</TouchableOpacity>
-					<TouchableOpacity activeOpacity={0.5}>
+					<TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate('AddChat')}>
 						<SimpleLineIcons name='pencil' size={24} color='black' />
 					</TouchableOpacity>
 				</View>
 			)
 		})
-	},[])
+	},[navigation])
 
 	return (
 		<SafeAreaView>
 			<ScrollView>
-				<CustomListItem />
+				{chats.map(({id,data: {chatName}})=>(
+					<CustomListItem key={id} 
+						id={id} 
+						chatName={chatName}
+						enterChat={enterChat}
+					 />
+				))}
 			</ScrollView>
 		</SafeAreaView>
 	)
@@ -55,18 +86,6 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
 	container:{
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 10,
-		backgroundColor: 'white'
+		height: "100%",
 	},
-	inputContainer: {
-		width: 300
-	},
-	button: {
-		width: 200,
-		marginTop: 10
-	}
-  
 });

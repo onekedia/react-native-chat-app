@@ -34,7 +34,7 @@ const LoginScreen=({navigation})=>{
 			<View style={styles.inputContainer}>
 				<Input placeholder="Email" 
 					autoFocus 
-					type="Email" 
+					type="email" 
 					value={email}
 					onChangeText={(text) => setEmail(text)}
 				/>
